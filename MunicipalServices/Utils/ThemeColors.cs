@@ -23,10 +23,11 @@ namespace MunicipalServices.Utils
         public static Color CardBackground = Color.White;
 
         // Text
-        public static Color TextPrimary = Color.FromArgb(28, 40, 42);
-        public static Color TextSecondary = Color.FromArgb(90, 106, 108);
+        public static Color TextPrimary = Color.FromArgb(22, 36, 38);
+        public static Color TextSecondary = Color.FromArgb(74, 92, 94);   // Slightly stronger for readability
         public static Color TextOnDark = Color.FromArgb(236, 245, 244);
         public static Color TextMutedOnDark = Color.FromArgb(168, 196, 194);
+        public static Color RowHover = Color.FromArgb(236, 244, 243);
 
         // Feedback
         public static Color Success = Color.FromArgb(46, 140, 98);

@@ -68,6 +68,8 @@ namespace MunicipalServices.Utils
             button.Font = BodySemibold;
             button.Cursor = Cursors.Hand;
             button.Height = Math.Max(button.Height, 40);
+            button.FlatAppearance.MouseOverBackColor = ThemeColors.PrimaryLight;
+            button.FlatAppearance.MouseDownBackColor = ThemeColors.PrimaryLight;
             AttachHover(button, ThemeColors.PrimaryLight, ThemeColors.Surface);
         }
 

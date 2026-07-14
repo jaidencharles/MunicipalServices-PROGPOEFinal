@@ -81,15 +81,15 @@ namespace MunicipalServices
             var brandPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 110,
-                Padding = new Padding(18, 20, 18, 12),
+                Height = 118,
+                Padding = new Padding(20, 24, 20, 16),
                 BackColor = ThemeColors.Sidebar
             };
 
             var lblBrand = new Label
             {
                 Text = "Helping Hands\nConnect",
-                Font = UiStyle.BrandFont,
+                Font = new Font("Segoe UI Semibold", 14F),
                 ForeColor = ThemeColors.TextOnDark,
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleLeft
@@ -101,11 +101,26 @@ namespace MunicipalServices
                 Font = new Font("Segoe UI", 8.5F),
                 ForeColor = ThemeColors.TextMutedOnDark,
                 Dock = DockStyle.Bottom,
-                Height = 20
+                Height = 18
             };
 
             brandPanel.Controls.Add(lblBrand);
             brandPanel.Controls.Add(lblBrandHint);
+            brandPanel.Paint += (s, e) =>
+            {
+                using (var pen = new Pen(Color.FromArgb(40, 255, 255, 255)))
+                {
+                    e.Graphics.DrawLine(pen, 20, brandPanel.Height - 1, brandPanel.Width - 20, brandPanel.Height - 1);
+                }
+            };
+
+            // Spacer under brand so nav doesn't collide with divider
+            var navSpacer = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 12,
+                BackColor = ThemeColors.Sidebar
+            };
 
             navEvents = CreateNavButton("  Local Events", AppScreen.LocalEvents);
             navStatus = CreateNavButton("  Request Status", AppScreen.RequestStatus);
@@ -119,6 +134,7 @@ namespace MunicipalServices
             sidebarPanel.Controls.Add(navReports);
             sidebarPanel.Controls.Add(navReport);
             sidebarPanel.Controls.Add(navHome);
+            sidebarPanel.Controls.Add(navSpacer);
             sidebarPanel.Controls.Add(brandPanel);
         }
 
@@ -141,7 +157,7 @@ namespace MunicipalServices
             {
                 Dock = DockStyle.Fill,
                 BackColor = ThemeColors.Background,
-                Padding = new Padding(48, 36, 48, 36)
+                Padding = new Padding(56, 44, 56, 40)
             };
 
             var hero = new Panel
@@ -153,57 +169,64 @@ namespace MunicipalServices
             var logo = new PictureBox
             {
                 Name = "pictureBoxLogo",
-                Size = new Size(120, 72),
-                Location = new Point(0, 8),
-                SizeMode = PictureBoxSizeMode.Zoom
+                Size = new Size(128, 76),
+                Location = new Point(0, 4),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = ThemeColors.Background
             };
             LoadLogo(logo);
 
             var lblAppName = new Label
             {
                 Text = "Helping Hands Connect",
-                Font = new Font("Segoe UI Semibold", 32F),
+                Font = new Font("Segoe UI Semibold", 34F),
                 ForeColor = ThemeColors.Primary,
-                Location = new Point(0, 92),
-                AutoSize = true
+                Location = new Point(0, 96),
+                AutoSize = true,
+                BackColor = ThemeColors.Background
             };
 
             var lblTagline = new Label
             {
                 Text = "Report municipal issues, follow their progress, and stay connected with local events.",
-                Font = UiStyle.SubtitleFont,
+                Font = new Font("Segoe UI", 12F),
                 ForeColor = ThemeColors.TextSecondary,
-                Location = new Point(0, 150),
-                MaximumSize = new Size(640, 0),
-                AutoSize = true
+                Location = new Point(0, 158),
+                MaximumSize = new Size(620, 0),
+                AutoSize = true,
+                BackColor = ThemeColors.Background
             };
 
             var actions = new FlowLayoutPanel
             {
-                Location = new Point(0, 210),
-                Size = new Size(760, 360),
+                Location = new Point(0, 220),
+                Size = new Size(720, 360),
                 FlowDirection = FlowDirection.TopDown,
                 WrapContents = false,
-                AutoScroll = false
+                AutoScroll = false,
+                BackColor = ThemeColors.Background
             };
 
             actions.Controls.Add(CreateHomeAction(
                 "Report an issue",
                 "Tell us about roads, utilities, safety, or other municipal concerns.",
                 true,
-                AppScreen.ReportIssue));
+                AppScreen.ReportIssue,
+                true));
 
             actions.Controls.Add(CreateHomeAction(
                 "Check request status",
                 "Look up a service request and see how it is moving forward.",
                 false,
-                AppScreen.RequestStatus));
+                AppScreen.RequestStatus,
+                true));
 
             actions.Controls.Add(CreateHomeAction(
                 "Local events",
                 "Browse upcoming community events and announcements.",
                 false,
-                AppScreen.LocalEvents));
+                AppScreen.LocalEvents,
+                false));
 
             hero.Controls.Add(logo);
             hero.Controls.Add(lblAppName);
@@ -212,49 +235,47 @@ namespace MunicipalServices
             homePanel.Controls.Add(hero);
         }
 
-        private Panel CreateHomeAction(string title, string description, bool primary, AppScreen screen)
+        private Panel CreateHomeAction(string title, string description, bool primary, AppScreen screen, bool showDivider)
         {
-            var card = new Panel
+            // Interaction row — no card chrome, no accent bars
+            var row = new Panel
             {
-                Width = 680,
-                Height = 92,
-                Margin = new Padding(0, 0, 0, 14),
-                BackColor = ThemeColors.Surface,
-                Padding = new Padding(20, 16, 20, 16)
-            };
-
-            // Thin accent bar on the left
-            var accent = new Panel
-            {
-                Dock = DockStyle.Left,
-                Width = 4,
-                BackColor = primary ? ThemeColors.Accent : ThemeColors.Primary
+                Width = 700,
+                Height = 88,
+                Margin = new Padding(0),
+                BackColor = ThemeColors.Background,
+                Cursor = Cursors.Hand
             };
 
             var lblTitle = new Label
             {
                 Text = title,
-                Font = UiStyle.BodySemibold,
+                Font = new Font("Segoe UI Semibold", 13F),
                 ForeColor = ThemeColors.TextPrimary,
-                Location = new Point(22, 14),
-                AutoSize = true
+                Location = new Point(8, 18),
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                Cursor = Cursors.Hand
             };
 
             var lblDesc = new Label
             {
                 Text = description,
-                Font = new Font("Segoe UI", 9.5F),
+                Font = new Font("Segoe UI", 10F),
                 ForeColor = ThemeColors.TextSecondary,
-                Location = new Point(22, 42),
-                MaximumSize = new Size(480, 0),
-                AutoSize = true
+                Location = new Point(8, 46),
+                MaximumSize = new Size(500, 0),
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                Cursor = Cursors.Hand
             };
 
             var btn = new Button
             {
                 Text = primary ? "Get started" : "Open",
-                Size = new Size(120, 40),
-                Location = new Point(520, 22)
+                Size = primary ? new Size(128, 40) : new Size(96, 40),
+                Location = new Point(primary ? 560 : 592, 24),
+                TabStop = true
             };
 
             if (primary)
@@ -262,17 +283,44 @@ namespace MunicipalServices
             else
                 UiStyle.StyleSecondaryButton(btn);
 
-            btn.Click += (s, e) => ShowScreen(screen);
-            card.Click += (s, e) => ShowScreen(screen);
-            lblTitle.Click += (s, e) => ShowScreen(screen);
-            lblDesc.Click += (s, e) => ShowScreen(screen);
+            Action go = () => ShowScreen(screen);
+            btn.Click += (s, e) => go();
+            row.Click += (s, e) => go();
+            lblTitle.Click += (s, e) => go();
+            lblDesc.Click += (s, e) => go();
 
-            card.Controls.Add(btn);
-            card.Controls.Add(lblDesc);
-            card.Controls.Add(lblTitle);
-            card.Controls.Add(accent);
+            // Soft hover wash across the row
+            EventHandler enter = (s, e) => row.BackColor = ThemeColors.RowHover;
+            EventHandler leave = (s, e) =>
+            {
+                if (!row.ClientRectangle.Contains(row.PointToClient(Cursor.Position)))
+                    row.BackColor = ThemeColors.Background;
+            };
+            row.MouseEnter += enter;
+            row.MouseLeave += leave;
+            lblTitle.MouseEnter += enter;
+            lblTitle.MouseLeave += leave;
+            lblDesc.MouseEnter += enter;
+            lblDesc.MouseLeave += leave;
+            btn.MouseEnter += enter;
+            btn.MouseLeave += leave;
 
-            return card;
+            if (showDivider)
+            {
+                row.Paint += (s, e) =>
+                {
+                    using (var pen = new Pen(ThemeColors.Border))
+                    {
+                        e.Graphics.DrawLine(pen, 8, row.Height - 1, row.Width - 12, row.Height - 1);
+                    }
+                };
+            }
+
+            row.Controls.Add(btn);
+            row.Controls.Add(lblDesc);
+            row.Controls.Add(lblTitle);
+
+            return row;
         }
 
         private void LoadLogo(PictureBox pictureBox)
