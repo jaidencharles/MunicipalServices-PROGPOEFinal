@@ -20,6 +20,8 @@ namespace MunicipalServices.Forms
         private Panel graphPanel;
         private readonly IssueRepository _issueRepository;
         private readonly StatusManagementService _statusService;
+        private CheckBox chkShowGraph;
+        private bool _showGraph;
 
         public ServiceRequestStatus()
         {
@@ -52,22 +54,21 @@ namespace MunicipalServices.Forms
 
         private void InitializeFormStyle()
         {
-            this.BackColor = ThemeColors.Background;
+            UiStyle.StyleForm(this);
             this.AutoScroll = true;
-            this.MinimumSize = new Size(1000, 1000);
-            this.Size = new Size(1000, 1000);
+            this.MinimumSize = new Size(900, 700);
+            this.Size = new Size(960, 780);
+            this.Padding = new Padding(40, 28, 40, 28);
             
             // Title
-            lblTitle.Location = new Point(48, 20);
-            lblTitle.Text = "Service Request Status";
-            lblTitle.Font = new Font("Segoe UI Semibold", 24F);
-            lblTitle.ForeColor = ThemeColors.Primary;
-            lblTitle.AutoSize = true;
+            lblTitle.Location = new Point(40, 28);
+            lblTitle.Text = "Request status";
+            UiStyle.StyleTitle(lblTitle);
             
             // Search panel
             Panel searchPanel = new Panel
             {
-                Location = new Point(48, 80),
+                Location = new Point(40, 80),
                 Size = new Size(400, 40)
             };
             
@@ -79,29 +80,50 @@ namespace MunicipalServices.Forms
             searchPanel.Controls.AddRange(new Control[] { txtSearch, btnSearch });
             
             // Request list
-            lstRequests.Location = new Point(48, 140);
+            lstRequests.Location = new Point(40, 140);
             lstRequests.Size = new Size(400, 300);
             
-            // Details panel - similar to LocalEvents approach
-            pnlDetails.Location = new Point(480, 140);
+            // Details panel
+            pnlDetails.Location = new Point(468, 140);
             pnlDetails.Size = new Size(422, 300);
-            pnlDetails.BackColor = Color.White;
-            pnlDetails.Padding = new Padding(15);
+            UiStyle.StylePanel(pnlDetails);
             
-            // Add controls in correct order
-            this.Controls.Clear();
-            this.Controls.AddRange(new Control[] {
-                lblTitle,
-                searchPanel,
-                lstRequests,
-                pnlDetails,
-                graphPanel
-            });
-            
+            chkShowGraph = new CheckBox
+            {
+                Text = "Show relationships",
+                Location = new Point(40, 456),
+                AutoSize = true,
+                Font = UiStyle.BodyFont,
+                ForeColor = ThemeColors.TextPrimary,
+                Checked = false
+            };
+            chkShowGraph.CheckedChanged += (s, e) =>
+            {
+                _showGraph = chkShowGraph.Checked;
+                if (graphPanel != null)
+                {
+                    graphPanel.Visible = _showGraph;
+                    if (_showGraph)
+                        graphPanel.Invalidate();
+                }
+            };
+
             StyleSearchControls();
             StyleListBoxes();
             StyleDetailsPanel();
             DrawRequestGraph();
+            if (graphPanel != null)
+                graphPanel.Visible = false;
+            
+            // Add controls in correct order (graphPanel created by DrawRequestGraph)
+            this.Controls.Clear();
+            this.Controls.Add(lblTitle);
+            this.Controls.Add(searchPanel);
+            this.Controls.Add(lstRequests);
+            this.Controls.Add(pnlDetails);
+            this.Controls.Add(chkShowGraph);
+            if (graphPanel != null)
+                this.Controls.Add(graphPanel);
             
             // Add selection change event handler
             lstRequests.SelectedIndexChanged += (s, e) =>
@@ -121,56 +143,29 @@ namespace MunicipalServices.Forms
 
         private void StyleSearchControls()
         {
-            txtSearch.Font = new Font("Segoe UI", 11F);
-            txtSearch.Text = "Enter Request ID";
-            txtSearch.ForeColor = ThemeColors.TextSecondary;
-            
-            // Add placeholder text behavior
-            txtSearch.GotFocus += (s, e) => {
-                if (txtSearch.Text == "Enter Request ID")
-                {
-                    txtSearch.Text = "";
-                    txtSearch.ForeColor = Color.Black;
-                }
-            };
-            
-            txtSearch.LostFocus += (s, e) => {
-                if (string.IsNullOrWhiteSpace(txtSearch.Text))
-                {
-                    txtSearch.Text = "Enter Request ID";
-                    txtSearch.ForeColor = ThemeColors.TextSecondary;
-                }
-            };
-            
-            btnSearch.BackColor = ThemeColors.Primary;
-            btnSearch.ForeColor = Color.White;
-            btnSearch.FlatStyle = FlatStyle.Flat;
+            UiStyle.StylePlaceholder(txtSearch, "Enter Request ID");
+            txtSearch.Size = new Size(300, 40);
+            UiStyle.StylePrimaryButton(btnSearch);
             btnSearch.Text = "Search";
+            btnSearch.Size = new Size(90, 40);
         }
 
         private void StyleListBoxes()
         {
-            lstRequests.Font = new Font("Segoe UI", 11F);
-            lstRequests.BackColor = Color.White;
-            lstRequests.BorderStyle = BorderStyle.FixedSingle;
-            
-            lstRelatedRequests.Font = new Font("Segoe UI", 11F);
-            lstRelatedRequests.BackColor = Color.White;
-            lstRelatedRequests.BorderStyle = BorderStyle.FixedSingle;
+            UiStyle.StyleListBox(lstRequests);
+            UiStyle.StyleListBox(lstRelatedRequests);
         }
 
         private void StyleDetailsPanel()
         {
-            pnlDetails.BackColor = Color.White;
+            UiStyle.StylePanel(pnlDetails);
             pnlDetails.BorderStyle = BorderStyle.FixedSingle;
             
-            // Labels
             lblRequestId.AutoSize = true;
             lblStatus.AutoSize = true;
             lblDescription.AutoSize = true;
             lblRelatedRequests.AutoSize = true;
             
-            // Position controls with absolute positioning
             lblRequestId.Location = new Point(15, 15);
             lblStatus.Location = new Point(15, 45);
             lblDescription.Location = new Point(15, 75);
@@ -182,23 +177,20 @@ namespace MunicipalServices.Forms
             lstRelatedRequests.Location = new Point(15, 255);
             lstRelatedRequests.Size = new Size(pnlDetails.Width - 30, 80);
             
-            // Set text
-            lblRelatedRequests.Text = "Related Requests:";
-            lblDescription.Text = "Description:";
+            lblRelatedRequests.Text = "Related requests";
+            lblDescription.Text = "Description";
             
-            // Configure fonts and styles
-            lblRequestId.Font = new Font("Segoe UI Semibold", 12F);
-            lblStatus.Font = new Font("Segoe UI Semibold", 12F);
-            lblDescription.Font = new Font("Segoe UI Semibold", 12F);
-            lblRelatedRequests.Font = new Font("Segoe UI Semibold", 12F);
-            txtDescription.Font = new Font("Segoe UI", 11F);
+            UiStyle.StyleFieldLabel(lblRequestId);
+            UiStyle.StyleFieldLabel(lblStatus);
+            UiStyle.StyleFieldLabel(lblDescription);
+            UiStyle.StyleFieldLabel(lblRelatedRequests);
+            txtDescription.Font = UiStyle.BodyFont;
             txtDescription.ReadOnly = true;
             txtDescription.BorderStyle = BorderStyle.None;
-            txtDescription.BackColor = Color.FromArgb(245, 245, 245);
+            txtDescription.BackColor = ThemeColors.PrimaryLight;
             
             progressBar.Style = ProgressBarStyle.Continuous;
             
-            // Add controls to panel
             pnlDetails.Controls.Clear();
             pnlDetails.Controls.AddRange(new Control[] {
                 lblRequestId,
@@ -213,21 +205,16 @@ namespace MunicipalServices.Forms
 
         private void StyleButton(Button button, Color color)
         {
-            button.FlatStyle = FlatStyle.Flat;
-            button.FlatAppearance.BorderSize = 0;
-            button.BackColor = color;
-            button.ForeColor = Color.White;
-            button.Font = new Font("Segoe UI Semibold", 11F);
-            button.Cursor = Cursors.Hand;
+            if (color == ThemeColors.Primary || color == ThemeColors.Accent)
+                UiStyle.StylePrimaryButton(button);
+            else
+                UiStyle.StyleMutedButton(button);
         }
 
         private void SetupEventHandlers()
         {
             btnSearch.Click += btnSearch_Click;
             lstRequests.SelectedIndexChanged += lstRequests_SelectedIndexChanged;
-            
-            txtSearch.Enter += txtSearch_Enter;
-            txtSearch.Leave += txtSearch_Leave;
         }
 
         private void txtSearch_Enter(object sender, EventArgs e)
@@ -412,10 +399,10 @@ namespace MunicipalServices.Forms
 
         private void btnBack_Click(object sender, EventArgs e)
         {
-            this.Close();
-            if (this.ParentForm != null)
+            var shell = FindForm() as global::MunicipalServices.Form1;
+            if (shell != null)
             {
-                this.ParentForm.Show();
+                shell.ShowScreen(global::MunicipalServices.AppScreen.Home);
             }
         }
 
@@ -454,16 +441,20 @@ namespace MunicipalServices.Forms
         {
             graphPanel = new Panel
             {
-                Location = new Point(48, 460),
-                Size = new Size(854, 300),
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle
+                Location = new Point(40, 490),
+                Size = new Size(850, 260),
+                BackColor = ThemeColors.Surface,
+                BorderStyle = BorderStyle.FixedSingle,
+                Visible = _showGraph
             };
 
             graphPanel.Paint += (s, e) =>
             {
                 var g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                if (!_showGraph)
+                    return;
 
                 if (lstRequests.SelectedItem != null)
                 {
@@ -478,7 +469,7 @@ namespace MunicipalServices.Forms
                     using (var pen = new Pen(Color.White, 2))
                     {
                         g.FillEllipse(brush, centerX - 40, centerY - 40, 80, 80);
-                        g.DrawString(selectedId.Substring(0, 4), 
+                        g.DrawString(selectedId.Substring(0, Math.Min(4, selectedId.Length)), 
                             new Font("Segoe UI", 10), 
                             Brushes.White, 
                             new RectangleF(centerX - 30, centerY - 10, 60, 20),
@@ -500,10 +491,10 @@ namespace MunicipalServices.Forms
                                 g.DrawLine(pen, centerX, centerY, x, y);
                             }
                             
-                            using (var brush = new SolidBrush(GetStatusColor(relatedRequests[i].Status)))
+                            using (var brush = new SolidBrush(UiStyle.StatusColor(relatedRequests[i].Status)))
                             {
                                 g.FillEllipse(brush, x - 30, y - 30, 60, 60);
-                                g.DrawString(relatedRequests[i].RequestId.Substring(0, 4),
+                                g.DrawString(relatedRequests[i].RequestId.Substring(0, Math.Min(4, relatedRequests[i].RequestId.Length)),
                                     new Font("Segoe UI", 9),
                                     Brushes.White,
                                     new RectangleF(x - 25, y - 10, 50, 20),
@@ -519,19 +510,7 @@ namespace MunicipalServices.Forms
 
         private Color GetStatusColor(string status)
         {
-            switch (status.ToLower())
-            {
-                case "reported":
-                    return Color.FromArgb(51, 122, 183);  // Blue
-                case "inprogress":
-                    return Color.FromArgb(240, 173, 78);  // Orange
-                case "resolved":
-                    return Color.FromArgb(92, 184, 92);   // Green
-                case "closed":
-                    return Color.FromArgb(217, 83, 79);   // Red
-                default:
-                    return Color.Gray;
-            }
+            return UiStyle.StatusColor(status);
         }
 
         private void SimulateStatusUpdates()

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 using MunicipalServices.Utils;
-using MunicipalServicesLibrary.Models;
 using MunicipalServicesLibrary.Data;
-using System.IO;
+using MunicipalServicesLibrary.Models;
 
 namespace MunicipalServices
 {
@@ -15,27 +14,54 @@ namespace MunicipalServices
         private byte[] attachmentData;
         private string attachmentName;
         private string attachmentType;
-        private readonly int progressStep = 25;
+
+        private Label lblLocationField;
+        private Label lblCategoryField;
+        private Label lblDescriptionField;
+        private Label lblAttachmentField;
+        private const string LocationPlaceholder = "Enter the street, landmark, or area";
+        private const string DescriptionPlaceholder = "Describe the issue and anything crews should know...";
 
         public ReportIssues()
         {
             InitializeComponent();
+            _issueRepository = new IssueRepository();
             InitializeFormStyle();
             SetupEventHandlers();
-            _issueRepository = new IssueRepository();
+            UpdateProgress(null, null);
         }
 
         private void InitializeFormStyle()
         {
-            // Apply theme colors and styling
-            this.BackColor = ThemeColors.Background;
-            
-            // Style the title
-            lblTitle.ForeColor = ThemeColors.Primary;
-            lblTitle.Font = new Font("Segoe UI Semibold", 24F);
-            
-            // Populate and style category dropdown
-            cmbCategory.Items.AddRange(new object[] {
+            UiStyle.StyleForm(this);
+            Padding = new Padding(40, 28, 40, 28);
+
+            UiStyle.StyleTitle(lblTitle);
+            lblTitle.Text = "Report an issue";
+            lblTitle.Location = new Point(40, 28);
+
+            var lblIntro = new Label
+            {
+                Text = "Share what needs attention. Fields marked complete update the progress bar below.",
+                Location = new Point(40, 72),
+                MaximumSize = new Size(860, 0),
+                AutoSize = true
+            };
+            UiStyle.StyleSubtitle(lblIntro);
+            if (!Controls.Contains(lblIntro))
+                Controls.Add(lblIntro);
+
+            lblLocationField = EnsureFieldLabel("Location", 120);
+            txtLocation.Location = new Point(40, 148);
+            txtLocation.Size = new Size(860, 32);
+            UiStyle.StylePlaceholder(txtLocation, LocationPlaceholder);
+
+            lblCategoryField = EnsureFieldLabel("Category", 198);
+            cmbCategory.Location = new Point(40, 226);
+            cmbCategory.Size = new Size(860, 32);
+            cmbCategory.Items.Clear();
+            cmbCategory.Items.AddRange(new object[]
+            {
                 "Infrastructure",
                 "Public Safety",
                 "Environmental",
@@ -45,269 +71,159 @@ namespace MunicipalServices
                 "Public Health",
                 "Other"
             });
-            cmbCategory.SelectedIndex = -1; // No default selection
-            StyleComboBox(cmbCategory);
-            
-            // Style input fields
-            StyleTextBox(txtLocation, "Enter location");
-            StyleRichTextBox(txtDescription, "Enter description of the issue here...");
-            
-            // Style buttons
-            StyleButton(btnSubmit, ThemeColors.Primary);
-            StyleButton(btnViewReports, ThemeColors.Secondary);
-            StyleButton(btnAttachFile, ThemeColors.TextSecondary);
-            StyleButton(btnBack, ThemeColors.TextSecondary);
-            
-            // Style progress bar
-            StyleProgressBar();
-            
-            // Style labels
-            StyleLabels();
-        }
+            cmbCategory.SelectedIndex = -1;
+            UiStyle.StyleComboBox(cmbCategory);
 
-        private void StyleTextBox(TextBox textBox, string placeholder)
-        {
-            textBox.Font = new Font("Segoe UI", 11F);
-            textBox.BackColor = ThemeColors.CardBackground;
-            textBox.ForeColor = ThemeColors.TextSecondary;
-            textBox.Text = placeholder;
-            textBox.BorderStyle = BorderStyle.None;
-            
-            Panel underline = new Panel
-            {
-                Height = 2,
-                Dock = DockStyle.Bottom,
-                BackColor = ThemeColors.Border
-            };
-            textBox.Controls.Add(underline);
-        }
+            lblDescriptionField = EnsureFieldLabel("Description", 276);
+            txtDescription.Location = new Point(40, 304);
+            txtDescription.Size = new Size(860, 180);
+            UiStyle.StyleRichTextBox(txtDescription, DescriptionPlaceholder);
 
-        private void StyleComboBox(ComboBox comboBox)
-        {
-            comboBox.FlatStyle = FlatStyle.Flat;
-            comboBox.Font = new Font("Segoe UI", 11F);
-            comboBox.BackColor = ThemeColors.CardBackground;
-            comboBox.ForeColor = ThemeColors.TextPrimary;
-        }
+            lblAttachmentField = EnsureFieldLabel("Attachment (optional)", 502);
+            btnAttachFile.Location = new Point(40, 530);
+            btnAttachFile.Size = new Size(200, 42);
+            btnAttachFile.Text = "Attach file";
+            UiStyle.StyleSecondaryButton(btnAttachFile);
 
-        private void StyleRichTextBox(RichTextBox richTextBox, string placeholder)
-        {
-            richTextBox.Font = new Font("Segoe UI", 11F);
-            richTextBox.BackColor = ThemeColors.CardBackground;
-            richTextBox.ForeColor = ThemeColors.TextSecondary;
-            richTextBox.Text = placeholder;
-            richTextBox.BorderStyle = BorderStyle.None;
-        }
-
-        private void StyleButton(Button button, Color color)
-        {
-            button.FlatStyle = FlatStyle.Flat;
-            button.FlatAppearance.BorderSize = 0;
-            button.BackColor = color;
-            button.ForeColor = Color.White;
-            button.Font = new Font("Segoe UI Semibold", 11F);
-            button.Cursor = Cursors.Hand;
-            
-            // Add rounded corners
-            GraphicsPath path = new GraphicsPath();
-            path.AddRoundedRectangle(button.ClientRectangle, 5);
-            button.Region = new Region(path);
-        }
-
-        private void StyleProgressBar()
-        {
-            progressBar.Style = ProgressBarStyle.Continuous;
-            progressBar.Height = 6;
-            progressBar.ForeColor = ThemeColors.Success;
-            progressBar.BackColor = ThemeColors.Border;
-        }
-
-        private void StyleLabels()
-        {
-            lblEngagementMessage.Font = new Font("Segoe UI", 11F);
-            lblEngagementMessage.ForeColor = ThemeColors.Primary;
-            
-            lblAttachmentStatus.Font = new Font("Segoe UI", 10F);
+            lblAttachmentStatus.Location = new Point(256, 538);
+            lblAttachmentStatus.AutoSize = true;
+            lblAttachmentStatus.Font = UiStyle.BodyFont;
             lblAttachmentStatus.ForeColor = ThemeColors.TextSecondary;
+            lblAttachmentStatus.Text = "No file attached";
+
+            progressBar.Location = new Point(40, 600);
+            progressBar.Size = new Size(860, 8);
+            progressBar.Style = ProgressBarStyle.Continuous;
+
+            lblEngagementMessage.Location = new Point(40, 618);
+            lblEngagementMessage.AutoSize = true;
+            lblEngagementMessage.Font = UiStyle.BodyFont;
+            lblEngagementMessage.ForeColor = ThemeColors.Primary;
+
+            btnSubmit.Location = new Point(40, 668);
+            btnSubmit.Size = new Size(180, 44);
+            btnSubmit.Text = "Submit report";
+            UiStyle.StyleAccentButton(btnSubmit);
+
+            btnViewReports.Location = new Point(236, 668);
+            btnViewReports.Size = new Size(160, 44);
+            btnViewReports.Text = "View reports";
+            UiStyle.StyleSecondaryButton(btnViewReports);
+
+            btnBack.Visible = false;
+        }
+
+        private Label EnsureFieldLabel(string text, int y)
+        {
+            var label = new Label
+            {
+                Text = text,
+                Location = new Point(40, y),
+                AutoSize = true
+            };
+            UiStyle.StyleFieldLabel(label);
+            Controls.Add(label);
+            label.BringToFront();
+            return label;
         }
 
         private void SetupEventHandlers()
         {
-            // Input field events
-            txtLocation.Enter += txtLocation_Enter;
-            txtLocation.Leave += txtLocation_Leave;
-            txtDescription.Enter += txtDescription_Enter;
-            txtDescription.Leave += txtDescription_Leave;
-            txtDescription.TextChanged += txtDescription_TextChanged;
-            
-            // Category selection event
+            txtLocation.Leave += (s, e) => UpdateProgress(s, e);
+            txtDescription.TextChanged += (s, e) => UpdateProgress(s, e);
             cmbCategory.SelectedIndexChanged += (s, e) => UpdateProgress(s, e);
-            
-            // Button events
             btnSubmit.Click += btnSubmit_Click;
             btnViewReports.Click += btnViewReports_Click;
             btnAttachFile.Click += btnAttachFile_Click;
-            
-            // Form events
-            this.FormClosing += ReportIssues_FormClosing;
-        }
-
-        private void ButtonHoverEffect(Button button, bool isHovered)
-        {
-            if (isHovered)
-            {
-                button.BackColor = ControlPaint.Light(button.BackColor);
-            }
-            else
-            {
-                button.BackColor = ControlPaint.Dark(button.BackColor);
-            }
         }
 
         private void UpdateProgress(object sender, EventArgs e)
         {
-            int progress = 0;
-            int progressStep = 25;  // Each step is worth 25%
+            int filled = 0;
 
-            // Check if location is filled
-            if (!string.IsNullOrEmpty(txtLocation.Text) && txtLocation.Text != "Enter location")
-                progress += progressStep;
+            if (!string.IsNullOrWhiteSpace(txtLocation.Text) && txtLocation.Text != LocationPlaceholder)
+                filled++;
 
-            // Check if category is selected
-            if (!string.IsNullOrEmpty(cmbCategory.Text) && cmbCategory.Text != "Select category")
-                progress += progressStep;
+            if (cmbCategory.SelectedIndex >= 0)
+                filled++;
 
-            // Check if description is filled
-            if (!string.IsNullOrEmpty(txtDescription.Text) && txtDescription.Text != "Enter description of the issue here...")
-                progress += progressStep;
+            if (!string.IsNullOrWhiteSpace(txtDescription.Text) && txtDescription.Text != DescriptionPlaceholder)
+                filled++;
 
-            // Check if a file is attached
-            if (!string.IsNullOrEmpty(attachmentName))  // Check if attachmentName has a value
-                progress += progressStep;
+            if (!string.IsNullOrEmpty(attachmentName))
+                filled++;
 
-            // Update progress bar value
-            progressBar.Value = progress;
+            progressBar.Value = filled * 25;
 
-            // Update engagement message based on progress
-            if (progress == 0)
+            string completeness = filled + " of 4 complete";
+            switch (filled)
             {
-                lblEngagementMessage.Text = "Let’s get started!";
-            }
-            else if (progress == 25)
-            {
-                lblEngagementMessage.Text = "Good start!";
-            }
-            else if (progress == 50)
-            {
-                lblEngagementMessage.Text = "You're halfway there!";
-            }
-            else if (progress == 75)
-            {
-                lblEngagementMessage.Text = "Almost done!";
-            }
-            else if (progress == 100)
-            {
-                lblEngagementMessage.Text = "Great! Ready to submit!";
+                case 0:
+                    lblEngagementMessage.Text = completeness + " — let's get started.";
+                    break;
+                case 1:
+                    lblEngagementMessage.Text = completeness + " — good start.";
+                    break;
+                case 2:
+                    lblEngagementMessage.Text = completeness + " — halfway there.";
+                    break;
+                case 3:
+                    lblEngagementMessage.Text = completeness + " — almost ready.";
+                    break;
+                default:
+                    lblEngagementMessage.Text = completeness + " — ready to submit.";
+                    break;
             }
         }
 
         private void btnViewReports_Click(object sender, EventArgs e)
         {
-            this.Hide();
-            ViewReports viewReportsForm = new ViewReports(_issueRepository);
-            viewReportsForm.TopLevel = false;
-            viewReportsForm.FormBorderStyle = FormBorderStyle.None;
-            viewReportsForm.Dock = DockStyle.Fill;
-            ((Form1)this.ParentForm).Controls.Add(viewReportsForm);
-            viewReportsForm.BringToFront();
-            viewReportsForm.Show();
-        }
-
-        private void txtLocation_Enter(object sender, EventArgs e)
-        {
-            if (txtLocation.Text == "Enter location")
+            var shell = FindForm() as Form1;
+            if (shell != null)
             {
-                txtLocation.Text = "";
-                txtLocation.ForeColor = ThemeColors.TextPrimary;
+                shell.ShowScreen(AppScreen.ViewReports);
             }
-        }
-
-        private void txtLocation_Leave(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(txtLocation.Text))
-            {
-                txtLocation.Text = "Enter location";
-                txtLocation.ForeColor = ThemeColors.TextSecondary;
-            }
-            UpdateProgress(sender, e);
-        }
-
-        private void txtDescription_Enter(object sender, EventArgs e)
-        {
-            if (txtDescription.Text == "Enter description of the issue here...")
-            {
-                txtDescription.Text = "";
-                txtDescription.ForeColor = ThemeColors.TextPrimary;
-            }
-        }
-
-        private void txtDescription_Leave(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(txtDescription.Text))
-            {
-                txtDescription.Text = "Enter description of the issue here...";
-                txtDescription.ForeColor = ThemeColors.TextSecondary;
-            }
-            UpdateProgress(sender, e);
-        }
-
-        private void txtDescription_TextChanged(object sender, EventArgs e)
-        {
-            UpdateProgress(sender, e);
         }
 
         private void btnAttachFile_Click(object sender, EventArgs e)
         {
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "Image and Document files|*.jpg;*.jpeg;*.png;*.pdf;*.docx|All files|*.*";
-            fileDialog.Title = "Select an Image or Document";
-
-            if (fileDialog.ShowDialog() == DialogResult.OK)
+            using (var fileDialog = new OpenFileDialog())
             {
+                fileDialog.Filter = "Image and Document files|*.jpg;*.jpeg;*.png;*.pdf;*.docx|All files|*.*";
+                fileDialog.Title = "Select an Image or Document";
+
+                if (fileDialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
                 try
                 {
-                    // Read file into byte array
                     attachmentData = File.ReadAllBytes(fileDialog.FileName);
                     attachmentName = Path.GetFileName(fileDialog.FileName);
-                    attachmentType = Path.GetExtension(fileDialog.FileName).ToLower();
+                    attachmentType = Path.GetExtension(fileDialog.FileName).ToLowerInvariant();
 
-                    // Handle different file types
-                    if (attachmentType == ".jpg" || attachmentType == ".jpeg" || attachmentType == ".png")
+                    if (attachmentType == ".jpg" || attachmentType == ".jpeg" || attachmentType == ".png"
+                        || attachmentType == ".pdf" || attachmentType == ".docx")
                     {
-                        lblAttachmentStatus.Text = $"Image attached: {attachmentName}";
-                    }
-                    else if (attachmentType == ".pdf" || attachmentType == ".docx")
-                    {
-                        lblAttachmentStatus.Text = $"Document attached: {attachmentName}";
+                        lblAttachmentStatus.Text = "Attached: " + attachmentName;
+                        lblAttachmentStatus.ForeColor = ThemeColors.Success;
                     }
                     else
                     {
-                        lblAttachmentStatus.Text = "Unsupported file type. Please attach an image or a document.";
+                        lblAttachmentStatus.Text = "Unsupported file type. Please attach an image or document.";
+                        lblAttachmentStatus.ForeColor = ThemeColors.Danger;
                         ClearAttachment();
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error reading file: " + ex.Message, "Error", 
+                    MessageBox.Show("Error reading file: " + ex.Message, "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                     ClearAttachment();
                 }
             }
-            else
-            {
-                ClearAttachment();
-                lblAttachmentStatus.Text = "No file attached.";
-            }
+
             UpdateProgress(null, null);
         }
 
@@ -320,22 +236,20 @@ namespace MunicipalServices
 
         private void btnSubmit_Click(object sender, EventArgs e)
         {
-            // Gather input data
             string location = txtLocation.Text;
             string category = cmbCategory.SelectedItem?.ToString();
             string description = txtDescription.Text;
-            //-------------------------------------------------------------------------------------------------------
-            // Validate input fields
-            if (string.IsNullOrEmpty(location) || location == "Enter location" ||
-                string.IsNullOrEmpty(category) || category == "Select category" ||
-                string.IsNullOrEmpty(description) || description == "Enter description of the issue here...")
+
+            if (string.IsNullOrWhiteSpace(location) || location == LocationPlaceholder
+                || string.IsNullOrWhiteSpace(category)
+                || string.IsNullOrWhiteSpace(description) || description == DescriptionPlaceholder)
             {
-                MessageBox.Show("Please fill in all fields before submitting.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please fill in location, category, and description before submitting.",
+                    "Missing information", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            //-------------------------------------------------------------------------------------------------------
-            // Store issue in the list
-            Issue newIssue = new Issue
+
+            var newIssue = new Issue
             {
                 Location = location,
                 Category = category,
@@ -346,48 +260,30 @@ namespace MunicipalServices
                 AttachmentType = attachmentType,
                 AttachmentData = attachmentData
             };
-            //-------------------------------------------------------------------------------------------------------
+
             _issueRepository.AddIssue(newIssue);
-            //-------------------------------------------------------------------------------------------------------
-            // Simulate submission
-            MessageBox.Show("Your report has been successfully submitted!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //-------------------------------------------------------------------------------------------------------
-            // Reset the form after submission
-            txtLocation.Text = "Enter location";
-            cmbCategory.SelectedIndex = -1;  // Reset category
-            txtDescription.Text = "Enter description of the issue here...";
-            lblAttachmentStatus.Text = "No file attached.";
+
+            MessageBox.Show("Your report has been successfully submitted!", "Success",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            txtLocation.Text = LocationPlaceholder;
+            txtLocation.ForeColor = ThemeColors.TextSecondary;
+            cmbCategory.SelectedIndex = -1;
+            txtDescription.Text = DescriptionPlaceholder;
+            txtDescription.ForeColor = ThemeColors.TextSecondary;
+            lblAttachmentStatus.Text = "No file attached";
+            lblAttachmentStatus.ForeColor = ThemeColors.TextSecondary;
             ClearAttachment();
             UpdateProgress(null, null);
         }
 
         private void btnBack_Click(object sender, EventArgs e)
         {
-            this.Hide();
-            if (this.ParentForm != null)
+            var shell = FindForm() as Form1;
+            if (shell != null)
             {
-                this.ParentForm.Show();
+                shell.ShowScreen(AppScreen.Home);
             }
-            this.Close();
-            this.Dispose();
-        }
-
-        private void ReportIssues_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            // Handle form closing event
-        }
-
-    }
-
-    public static class GraphicsExtensions
-    {
-        public static void AddRoundedRectangle(this GraphicsPath path, Rectangle bounds, int radius)
-        {
-            path.AddArc(bounds.X, bounds.Y, radius * 2, radius * 2, 180, 90);
-            path.AddArc(bounds.Right - radius * 2, bounds.Y, radius * 2, radius * 2, 270, 90);
-            path.AddArc(bounds.Right - radius * 2, bounds.Bottom - radius * 2, radius * 2, radius * 2, 0, 90);
-            path.AddArc(bounds.X, bounds.Bottom - radius * 2, radius * 2, radius * 2, 90, 90);
-            path.CloseFigure();
         }
     }
 }

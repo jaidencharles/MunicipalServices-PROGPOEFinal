@@ -135,10 +135,9 @@ namespace MunicipalServices
             this.Controls.Add(this.lblAttachment);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.btnOpenDocument);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "ViewReports";
             this.Padding = new System.Windows.Forms.Padding(40);
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "View Reports - Helping Hands Connect";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             this.ResumeLayout(false);
