@@ -49,6 +49,8 @@ namespace MunicipalServices
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.Sizable;
             IsMdiContainer = false;
+            ShowIcon = true;
+            ApplyAppIcon();
 
             Controls.Clear();
 
@@ -340,6 +342,29 @@ namespace MunicipalServices
             row.Controls.Add(lblTitle);
 
             return row;
+        }
+
+        private void ApplyAppIcon()
+        {
+            string[] icoCandidates =
+            {
+                Path.Combine(Application.StartupPath, "Images", "helping-hands.ico"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", "helping-hands.ico")
+            };
+
+            foreach (var path in icoCandidates)
+            {
+                if (!File.Exists(path)) continue;
+                try
+                {
+                    Icon = new Icon(path);
+                    return;
+                }
+                catch
+                {
+                    // Try next candidate
+                }
+            }
         }
 
         private void LoadLogo(PictureBox pictureBox)
