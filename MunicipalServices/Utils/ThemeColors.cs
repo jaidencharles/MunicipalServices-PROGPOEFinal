@@ -4,39 +4,51 @@ namespace MunicipalServices.Utils
 {
     /// <summary>
     /// Shared palette for Helping Hands Connect.
-    /// Civic / approachable: deep teal primary, warm coral accent, soft paper surfaces.
+    /// South African flag colours used in a restrained civic/municipal treatment:
+    /// blue for structure, green for secondary actions, gold for primary CTAs,
+    /// red for alerts, black/white for typography and surfaces.
     /// </summary>
     public static class ThemeColors
     {
-        // Brand
-        public static Color Primary = Color.FromArgb(15, 90, 94);        // Deep teal
-        public static Color PrimaryDark = Color.FromArgb(10, 68, 72);    // Darker teal
-        public static Color PrimaryLight = Color.FromArgb(232, 244, 244); // Soft teal wash
-        public static Color Accent = Color.FromArgb(196, 92, 62);        // Warm coral CTA
+        // Flag colours (approximate official values)
+        public static Color FlagBlue = Color.FromArgb(0, 20, 137);      // #001489
+        public static Color FlagGreen = Color.FromArgb(0, 119, 73);     // #007749
+        public static Color FlagGold = Color.FromArgb(252, 181, 20);    // #FCB514
+        public static Color FlagRed = Color.FromArgb(224, 60, 49);      // #E03C31
+        public static Color FlagBlack = Color.FromArgb(0, 0, 0);
+        public static Color FlagWhite = Color.FromArgb(255, 255, 255);
+
+        // Brand / chrome
+        public static Color Primary = FlagBlue;
+        public static Color PrimaryDark = Color.FromArgb(0, 12, 90);
+        public static Color PrimaryLight = Color.FromArgb(232, 236, 248); // soft blue wash
+        public static Color Accent = FlagGold;
+        public static Color AccentText = FlagBlack;                      // gold buttons need dark text
+        public static Color Secondary = FlagGreen;
 
         // Surfaces
-        public static Color Background = Color.FromArgb(244, 247, 246); // Soft sage-gray
-        public static Color Surface = Color.FromArgb(255, 255, 255);    // White content area
-        public static Color Sidebar = Color.FromArgb(12, 58, 61);       // Dark teal sidebar
-        public static Color SidebarHover = Color.FromArgb(20, 78, 82);
-        public static Color SidebarActive = Color.FromArgb(28, 98, 102);
-        public static Color CardBackground = Color.White;
+        public static Color Background = Color.FromArgb(245, 246, 248); // cool neutral
+        public static Color Surface = FlagWhite;
+        public static Color Sidebar = Color.FromArgb(8, 14, 48);        // deep navy (black + blue)
+        public static Color SidebarHover = Color.FromArgb(18, 28, 78);
+        public static Color SidebarActive = Color.FromArgb(0, 20, 137); // flag blue
+        public static Color CardBackground = FlagWhite;
+        public static Color RowHover = Color.FromArgb(236, 239, 247);
 
         // Text
-        public static Color TextPrimary = Color.FromArgb(22, 36, 38);
-        public static Color TextSecondary = Color.FromArgb(74, 92, 94);   // Slightly stronger for readability
-        public static Color TextOnDark = Color.FromArgb(236, 245, 244);
-        public static Color TextMutedOnDark = Color.FromArgb(168, 196, 194);
-        public static Color RowHover = Color.FromArgb(236, 244, 243);
+        public static Color TextPrimary = Color.FromArgb(18, 18, 20);
+        public static Color TextSecondary = Color.FromArgb(70, 74, 86);
+        public static Color TextOnDark = Color.FromArgb(245, 246, 250);
+        public static Color TextMutedOnDark = Color.FromArgb(170, 178, 200);
 
-        // Feedback
-        public static Color Success = Color.FromArgb(46, 140, 98);
-        public static Color Warning = Color.FromArgb(196, 140, 40);
-        public static Color Danger = Color.FromArgb(180, 62, 62);
-        public static Color Info = Color.FromArgb(51, 122, 183);
+        // Feedback mapped to flag colours
+        public static Color Success = FlagGreen;
+        public static Color Warning = Color.FromArgb(196, 140, 16);     // deeper gold for text/chips
+        public static Color Danger = FlagRed;
+        public static Color Info = FlagBlue;
 
         // Chrome
-        public static Color Border = Color.FromArgb(210, 222, 220);
-        public static Color InputBorder = Color.FromArgb(190, 206, 204);
+        public static Color Border = Color.FromArgb(214, 218, 228);
+        public static Color InputBorder = Color.FromArgb(190, 196, 210);
     }
 }

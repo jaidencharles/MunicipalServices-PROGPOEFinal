@@ -81,8 +81,8 @@ namespace MunicipalServices
             var brandPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 118,
-                Padding = new Padding(20, 24, 20, 16),
+                Height = 126,
+                Padding = new Padding(20, 22, 20, 14),
                 BackColor = ThemeColors.Sidebar
             };
 
@@ -97,8 +97,8 @@ namespace MunicipalServices
 
             var lblBrandHint = new Label
             {
-                Text = "Municipal services",
-                Font = new Font("Segoe UI", 8.5F),
+                Text = "South African municipal services",
+                Font = new Font("Segoe UI", 8.25F),
                 ForeColor = ThemeColors.TextMutedOnDark,
                 Dock = DockStyle.Bottom,
                 Height = 18
@@ -108,17 +108,33 @@ namespace MunicipalServices
             brandPanel.Controls.Add(lblBrandHint);
             brandPanel.Paint += (s, e) =>
             {
-                using (var pen = new Pen(Color.FromArgb(40, 255, 255, 255)))
+                Color[] bands =
                 {
-                    e.Graphics.DrawLine(pen, 20, brandPanel.Height - 1, brandPanel.Width - 20, brandPanel.Height - 1);
+                    ThemeColors.FlagGreen,
+                    ThemeColors.FlagGold,
+                    ThemeColors.FlagBlue,
+                    ThemeColors.FlagRed,
+                    ThemeColors.FlagBlack
+                };
+                int y = brandPanel.Height - 4;
+                int x = 0;
+                int total = brandPanel.ClientSize.Width;
+                int bandWidth = Math.Max(1, total / bands.Length);
+                for (int i = 0; i < bands.Length; i++)
+                {
+                    int w = (i == bands.Length - 1) ? (total - x) : bandWidth;
+                    using (var brush = new SolidBrush(bands[i]))
+                    {
+                        e.Graphics.FillRectangle(brush, x, y, w, 4);
+                    }
+                    x += w;
                 }
             };
 
-            // Spacer under brand so nav doesn't collide with divider
             var navSpacer = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 12,
+                Height = 14,
                 BackColor = ThemeColors.Sidebar
             };
 
@@ -128,7 +144,6 @@ namespace MunicipalServices
             navReport = CreateNavButton("  Report Issue", AppScreen.ReportIssue);
             navHome = CreateNavButton("  Home", AppScreen.Home);
 
-            // Dock Top stacks upward visually last-added at top, so add in reverse.
             sidebarPanel.Controls.Add(navEvents);
             sidebarPanel.Controls.Add(navStatus);
             sidebarPanel.Controls.Add(navReports);
@@ -157,7 +172,7 @@ namespace MunicipalServices
             {
                 Dock = DockStyle.Fill,
                 BackColor = ThemeColors.Background,
-                Padding = new Padding(56, 44, 56, 40)
+                Padding = new Padding(56, 40, 56, 40)
             };
 
             var hero = new Panel
@@ -176,30 +191,33 @@ namespace MunicipalServices
             };
             LoadLogo(logo);
 
+            var ribbon = UiStyle.CreateFlagRibbon(280);
+            ribbon.Location = new Point(0, 88);
+
             var lblAppName = new Label
             {
                 Text = "Helping Hands Connect",
                 Font = new Font("Segoe UI Semibold", 34F),
                 ForeColor = ThemeColors.Primary,
-                Location = new Point(0, 96),
+                Location = new Point(0, 108),
                 AutoSize = true,
                 BackColor = ThemeColors.Background
             };
 
             var lblTagline = new Label
             {
-                Text = "Report municipal issues, follow their progress, and stay connected with local events.",
+                Text = "Serving communities across South Africa — report issues, track requests, and stay informed.",
                 Font = new Font("Segoe UI", 12F),
                 ForeColor = ThemeColors.TextSecondary,
-                Location = new Point(0, 158),
-                MaximumSize = new Size(620, 0),
+                Location = new Point(0, 172),
+                MaximumSize = new Size(640, 0),
                 AutoSize = true,
                 BackColor = ThemeColors.Background
             };
 
             var actions = new FlowLayoutPanel
             {
-                Location = new Point(0, 220),
+                Location = new Point(0, 232),
                 Size = new Size(720, 360),
                 FlowDirection = FlowDirection.TopDown,
                 WrapContents = false,
@@ -229,6 +247,7 @@ namespace MunicipalServices
                 false));
 
             hero.Controls.Add(logo);
+            hero.Controls.Add(ribbon);
             hero.Controls.Add(lblAppName);
             hero.Controls.Add(lblTagline);
             hero.Controls.Add(actions);

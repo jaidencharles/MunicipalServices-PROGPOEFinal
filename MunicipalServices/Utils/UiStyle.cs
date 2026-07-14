@@ -6,12 +6,12 @@ using System.Windows.Forms;
 namespace MunicipalServices.Utils
 {
     /// <summary>
-    /// Shared control styling so every screen looks consistent.
+    /// Shared control styling so every screen looks consistent and professional.
     /// </summary>
     public static class UiStyle
     {
         public static readonly Font TitleFont = new Font("Segoe UI Semibold", 22F);
-        public static readonly Font SubtitleFont = new Font("Segoe UI", 11F);
+        public static readonly Font SubtitleFont = new Font("Segoe UI", 11.5F);
         public static readonly Font BodyFont = new Font("Segoe UI", 11F);
         public static readonly Font BodySemibold = new Font("Segoe UI Semibold", 11F);
         public static readonly Font NavFont = new Font("Segoe UI Semibold", 10.5F);
@@ -50,32 +50,35 @@ namespace MunicipalServices.Utils
 
         public static void StylePrimaryButton(Button button)
         {
-            ApplyButtonBase(button, ThemeColors.Primary, Color.White);
+            ApplyButtonBase(button, ThemeColors.Primary, ThemeColors.FlagWhite);
         }
 
+        /// <summary>
+        /// Gold CTA — black text for contrast on flag gold.
+        /// </summary>
         public static void StyleAccentButton(Button button)
         {
-            ApplyButtonBase(button, ThemeColors.Accent, Color.White);
+            ApplyButtonBase(button, ThemeColors.Accent, ThemeColors.AccentText);
         }
 
         public static void StyleSecondaryButton(Button button)
         {
             button.FlatStyle = FlatStyle.Flat;
             button.FlatAppearance.BorderSize = 1;
-            button.FlatAppearance.BorderColor = ThemeColors.Primary;
+            button.FlatAppearance.BorderColor = ThemeColors.Secondary;
             button.BackColor = ThemeColors.Surface;
-            button.ForeColor = ThemeColors.Primary;
+            button.ForeColor = ThemeColors.Secondary;
             button.Font = BodySemibold;
             button.Cursor = Cursors.Hand;
             button.Height = Math.Max(button.Height, 40);
-            button.FlatAppearance.MouseOverBackColor = ThemeColors.PrimaryLight;
-            button.FlatAppearance.MouseDownBackColor = ThemeColors.PrimaryLight;
-            AttachHover(button, ThemeColors.PrimaryLight, ThemeColors.Surface);
+            button.FlatAppearance.MouseOverBackColor = Color.FromArgb(230, 244, 238);
+            button.FlatAppearance.MouseDownBackColor = Color.FromArgb(220, 238, 230);
+            AttachHover(button, Color.FromArgb(230, 244, 238), ThemeColors.Surface);
         }
 
         public static void StyleMutedButton(Button button)
         {
-            ApplyButtonBase(button, ThemeColors.TextSecondary, Color.White);
+            ApplyButtonBase(button, ThemeColors.TextSecondary, ThemeColors.FlagWhite);
         }
 
         public static void StyleNavButton(Button button, bool isActive)
@@ -83,17 +86,17 @@ namespace MunicipalServices.Utils
             button.FlatStyle = FlatStyle.Flat;
             button.FlatAppearance.BorderSize = 0;
             button.TextAlign = ContentAlignment.MiddleLeft;
-            button.Padding = new Padding(18, 0, 12, 0);
+            button.Padding = new Padding(22, 0, 12, 0);
             button.Font = NavFont;
             button.Cursor = Cursors.Hand;
-            button.Height = 44;
+            button.Height = 46;
             button.Dock = DockStyle.Top;
             button.Margin = new Padding(0);
 
             if (isActive)
             {
                 button.BackColor = ThemeColors.SidebarActive;
-                button.ForeColor = Color.White;
+                button.ForeColor = ThemeColors.FlagWhite;
             }
             else
             {
@@ -103,12 +106,23 @@ namespace MunicipalServices.Utils
 
             button.MouseEnter -= NavButton_MouseEnter;
             button.MouseLeave -= NavButton_MouseLeave;
-            // Preserve AppScreen in Tag; store active state via Name suffix or separate property.
-            // Callers that need Tag for navigation should set Tag after this, or we keep a known pattern:
-            // Form1 sets Tag = AppScreen before calling this method, so stash active on AccessibleName.
             button.AccessibleName = isActive ? "nav-active" : "nav";
             button.MouseEnter += NavButton_MouseEnter;
             button.MouseLeave += NavButton_MouseLeave;
+
+            // Gold active indicator stripe on the left
+            button.Paint -= NavButton_Paint;
+            button.Paint += NavButton_Paint;
+        }
+
+        private static void NavButton_Paint(object sender, PaintEventArgs e)
+        {
+            var button = sender as Button;
+            if (button == null || button.AccessibleName != "nav-active") return;
+            using (var brush = new SolidBrush(ThemeColors.FlagGold))
+            {
+                e.Graphics.FillRectangle(brush, 0, 8, 3, button.Height - 16);
+            }
         }
 
         private static void NavButton_MouseEnter(object sender, EventArgs e)
@@ -195,6 +209,47 @@ namespace MunicipalServices.Utils
             panel.Padding = new Padding(16);
         }
 
+        /// <summary>
+        /// Slim South African flag colour ribbon — civic identity without clutter.
+        /// </summary>
+        public static Panel CreateFlagRibbon(int width)
+        {
+            var ribbon = new Panel
+            {
+                Width = width,
+                Height = 4,
+                BackColor = ThemeColors.Background
+            };
+
+            Color[] bands =
+            {
+                ThemeColors.FlagGreen,
+                ThemeColors.FlagGold,
+                ThemeColors.FlagBlue,
+                ThemeColors.FlagRed,
+                ThemeColors.FlagBlack
+            };
+
+            int bandWidth = Math.Max(1, width / bands.Length);
+            int x = 0;
+            for (int i = 0; i < bands.Length; i++)
+            {
+                int w = (i == bands.Length - 1) ? (width - x) : bandWidth;
+                var band = new Panel
+                {
+                    Left = x,
+                    Top = 0,
+                    Width = w,
+                    Height = 4,
+                    BackColor = bands[i]
+                };
+                ribbon.Controls.Add(band);
+                x += w;
+            }
+
+            return ribbon;
+        }
+
         public static Color StatusColor(string status)
         {
             if (string.IsNullOrWhiteSpace(status))
@@ -220,12 +275,14 @@ namespace MunicipalServices.Utils
         public static Label CreateStatusChip(string status)
         {
             var color = StatusColor(status);
+            bool onGold = color.ToArgb() == ThemeColors.Warning.ToArgb()
+                          || color.ToArgb() == ThemeColors.FlagGold.ToArgb();
             return new Label
             {
                 Text = status,
                 AutoSize = true,
                 Font = new Font("Segoe UI Semibold", 9F),
-                ForeColor = Color.White,
+                ForeColor = onGold ? ThemeColors.FlagBlack : ThemeColors.FlagWhite,
                 BackColor = color,
                 Padding = new Padding(8, 4, 8, 4),
                 Margin = new Padding(0, 0, 8, 0)
@@ -241,12 +298,14 @@ namespace MunicipalServices.Utils
             button.Font = BodySemibold;
             button.Cursor = Cursors.Hand;
             button.Height = Math.Max(button.Height, 40);
-            AttachHover(button, ControlPaint.Light(backColor), backColor);
+            Color hover = ControlPaint.Light(backColor, 0.12f);
+            button.FlatAppearance.MouseOverBackColor = hover;
+            button.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(backColor, 0.05f);
+            AttachHover(button, hover, backColor);
         }
 
         private static void AttachHover(Button button, Color hover, Color normal)
         {
-            // Store colors for hover without clobbering Tag used elsewhere
             button.MouseEnter += (s, e) => button.BackColor = hover;
             button.MouseLeave += (s, e) => button.BackColor = normal;
         }
