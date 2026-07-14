@@ -2,154 +2,380 @@
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using MunicipalServicesLibrary.Models;
-using MunicipalServicesLibrary.Data;
 using MunicipalServices.Forms;
+using MunicipalServices.Utils;
+using MunicipalServicesLibrary.Data;
 
 namespace MunicipalServices
 {
+    public enum AppScreen
+    {
+        Home,
+        ReportIssue,
+        ViewReports,
+        RequestStatus,
+        LocalEvents
+    }
+
     public partial class Form1 : Form
     {
-        private Form activeForm = null;
-        
+        private Panel sidebarPanel;
+        private Panel contentPanel;
+        private Panel homePanel;
+        private Form activeForm;
+        private Button activeNavButton;
+        private Button navHome;
+        private Button navReport;
+        private Button navReports;
+        private Button navStatus;
+        private Button navEvents;
+        private readonly IssueRepository _issueRepository = new IssueRepository();
+
         public Form1()
         {
             InitializeComponent();
-            this.IsMdiContainer = true;
-            InitializeMDILayout();
-            LoadImage();
+            BuildShell();
+            ShowScreen(AppScreen.Home);
         }
 
-        private void InitializeMDILayout()
+        private void BuildShell()
         {
-            // Create MenuStrip
-            MenuStrip menuStrip = new MenuStrip();
-            
-            // Issues Menu
-            ToolStripMenuItem issuesMenu = new ToolStripMenuItem("Issues");
-            issuesMenu.DropDownItems.Add("Report Issue", null, ShowReportIssue);
-            issuesMenu.DropDownItems.Add("View Reports", null, ShowViewReports);
-            issuesMenu.DropDownItems.Add("Service Request Status", null, ShowServiceRequestStatus);
-            
-            // Events Menu
-            ToolStripMenuItem eventsMenu = new ToolStripMenuItem("Events");
-            eventsMenu.DropDownItems.Add("Local Events", null, ShowLocalEvents);
+            SuspendLayout();
 
-            menuStrip.Items.Add(issuesMenu);
-            menuStrip.Items.Add(eventsMenu);
-            
-            this.MainMenuStrip = menuStrip;
-            this.Controls.Add(menuStrip);
-        }
+            Text = "Helping Hands Connect";
+            BackColor = ThemeColors.Background;
+            MinimumSize = new Size(1024, 700);
+            ClientSize = new Size(1180, 760);
+            StartPosition = FormStartPosition.CenterScreen;
+            FormBorderStyle = FormBorderStyle.Sizable;
+            IsMdiContainer = false;
 
-        private void OpenChildForm(Form childForm)
-        {
-            if (activeForm != null)
+            Controls.Clear();
+
+            sidebarPanel = new Panel
             {
-                activeForm.Close();
-                activeForm.Dispose();
-            }
-            
-            activeForm = childForm;
-            childForm.TopLevel = false;
-            childForm.FormBorderStyle = FormBorderStyle.None;
-            childForm.AutoScroll = true;
-            
-            // Create a panel to host the child form
-            Panel hostPanel = new Panel
+                Dock = DockStyle.Left,
+                Width = 232,
+                BackColor = ThemeColors.Sidebar,
+                Padding = new Padding(0, 0, 0, 16)
+            };
+
+            contentPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                AutoScroll = true
+                BackColor = ThemeColors.Background,
+                Padding = new Padding(0)
             };
-            
-            this.Controls.Add(hostPanel);
-            hostPanel.Controls.Add(childForm);
-            
-            // Center the child form within the panel
-            childForm.Location = new Point(
-                (hostPanel.Width - childForm.Width) / 2,
-                (hostPanel.Height - childForm.Height) / 2
-            );
-            
-            childForm.Show();
-            hostPanel.BringToFront();
-        }
-        
-        private void ShowReportIssue(object sender, EventArgs e)
-        {
-            OpenChildForm(new ReportIssues());
+
+            BuildSidebar();
+            BuildHomePanel();
+
+            Controls.Add(contentPanel);
+            Controls.Add(sidebarPanel);
+
+            ResumeLayout(true);
         }
 
-        private void ShowViewReports(object sender, EventArgs e)
+        private void BuildSidebar()
         {
-            OpenChildForm(new ViewReports(new IssueRepository()));
-        }
-
-        private void CloseAllChildForms()
-        {
-            foreach (Form childForm in this.MdiChildren)
+            var brandPanel = new Panel
             {
-                childForm.Close();
+                Dock = DockStyle.Top,
+                Height = 110,
+                Padding = new Padding(18, 20, 18, 12),
+                BackColor = ThemeColors.Sidebar
+            };
+
+            var lblBrand = new Label
+            {
+                Text = "Helping Hands\nConnect",
+                Font = UiStyle.BrandFont,
+                ForeColor = ThemeColors.TextOnDark,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            var lblBrandHint = new Label
+            {
+                Text = "Municipal services",
+                Font = new Font("Segoe UI", 8.5F),
+                ForeColor = ThemeColors.TextMutedOnDark,
+                Dock = DockStyle.Bottom,
+                Height = 20
+            };
+
+            brandPanel.Controls.Add(lblBrand);
+            brandPanel.Controls.Add(lblBrandHint);
+
+            navEvents = CreateNavButton("  Local Events", AppScreen.LocalEvents);
+            navStatus = CreateNavButton("  Request Status", AppScreen.RequestStatus);
+            navReports = CreateNavButton("  View Reports", AppScreen.ViewReports);
+            navReport = CreateNavButton("  Report Issue", AppScreen.ReportIssue);
+            navHome = CreateNavButton("  Home", AppScreen.Home);
+
+            // Dock Top stacks upward visually last-added at top, so add in reverse.
+            sidebarPanel.Controls.Add(navEvents);
+            sidebarPanel.Controls.Add(navStatus);
+            sidebarPanel.Controls.Add(navReports);
+            sidebarPanel.Controls.Add(navReport);
+            sidebarPanel.Controls.Add(navHome);
+            sidebarPanel.Controls.Add(brandPanel);
+        }
+
+        private Button CreateNavButton(string text, AppScreen screen)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Tag = screen,
+                Width = 232
+            };
+            UiStyle.StyleNavButton(button, false);
+            button.Click += (s, e) => ShowScreen(screen);
+            return button;
+        }
+
+        private void BuildHomePanel()
+        {
+            homePanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = ThemeColors.Background,
+                Padding = new Padding(48, 36, 48, 36)
+            };
+
+            var hero = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = ThemeColors.Background
+            };
+
+            var logo = new PictureBox
+            {
+                Name = "pictureBoxLogo",
+                Size = new Size(120, 72),
+                Location = new Point(0, 8),
+                SizeMode = PictureBoxSizeMode.Zoom
+            };
+            LoadLogo(logo);
+
+            var lblAppName = new Label
+            {
+                Text = "Helping Hands Connect",
+                Font = new Font("Segoe UI Semibold", 32F),
+                ForeColor = ThemeColors.Primary,
+                Location = new Point(0, 92),
+                AutoSize = true
+            };
+
+            var lblTagline = new Label
+            {
+                Text = "Report municipal issues, follow their progress, and stay connected with local events.",
+                Font = UiStyle.SubtitleFont,
+                ForeColor = ThemeColors.TextSecondary,
+                Location = new Point(0, 150),
+                MaximumSize = new Size(640, 0),
+                AutoSize = true
+            };
+
+            var actions = new FlowLayoutPanel
+            {
+                Location = new Point(0, 210),
+                Size = new Size(760, 360),
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                AutoScroll = false
+            };
+
+            actions.Controls.Add(CreateHomeAction(
+                "Report an issue",
+                "Tell us about roads, utilities, safety, or other municipal concerns.",
+                true,
+                AppScreen.ReportIssue));
+
+            actions.Controls.Add(CreateHomeAction(
+                "Check request status",
+                "Look up a service request and see how it is moving forward.",
+                false,
+                AppScreen.RequestStatus));
+
+            actions.Controls.Add(CreateHomeAction(
+                "Local events",
+                "Browse upcoming community events and announcements.",
+                false,
+                AppScreen.LocalEvents));
+
+            hero.Controls.Add(logo);
+            hero.Controls.Add(lblAppName);
+            hero.Controls.Add(lblTagline);
+            hero.Controls.Add(actions);
+            homePanel.Controls.Add(hero);
+        }
+
+        private Panel CreateHomeAction(string title, string description, bool primary, AppScreen screen)
+        {
+            var card = new Panel
+            {
+                Width = 680,
+                Height = 92,
+                Margin = new Padding(0, 0, 0, 14),
+                BackColor = ThemeColors.Surface,
+                Padding = new Padding(20, 16, 20, 16)
+            };
+
+            // Thin accent bar on the left
+            var accent = new Panel
+            {
+                Dock = DockStyle.Left,
+                Width = 4,
+                BackColor = primary ? ThemeColors.Accent : ThemeColors.Primary
+            };
+
+            var lblTitle = new Label
+            {
+                Text = title,
+                Font = UiStyle.BodySemibold,
+                ForeColor = ThemeColors.TextPrimary,
+                Location = new Point(22, 14),
+                AutoSize = true
+            };
+
+            var lblDesc = new Label
+            {
+                Text = description,
+                Font = new Font("Segoe UI", 9.5F),
+                ForeColor = ThemeColors.TextSecondary,
+                Location = new Point(22, 42),
+                MaximumSize = new Size(480, 0),
+                AutoSize = true
+            };
+
+            var btn = new Button
+            {
+                Text = primary ? "Get started" : "Open",
+                Size = new Size(120, 40),
+                Location = new Point(520, 22)
+            };
+
+            if (primary)
+                UiStyle.StyleAccentButton(btn);
+            else
+                UiStyle.StyleSecondaryButton(btn);
+
+            btn.Click += (s, e) => ShowScreen(screen);
+            card.Click += (s, e) => ShowScreen(screen);
+            lblTitle.Click += (s, e) => ShowScreen(screen);
+            lblDesc.Click += (s, e) => ShowScreen(screen);
+
+            card.Controls.Add(btn);
+            card.Controls.Add(lblDesc);
+            card.Controls.Add(lblTitle);
+            card.Controls.Add(accent);
+
+            return card;
+        }
+
+        private void LoadLogo(PictureBox pictureBox)
+        {
+            string[] candidates =
+            {
+                Path.Combine(Application.StartupPath, "Images", "helping hands.jpeg"),
+                Path.Combine(Application.StartupPath, "Images", "hands.jpeg"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", "helping hands.jpeg")
+            };
+
+            foreach (var path in candidates)
+            {
+                if (!File.Exists(path)) continue;
+                pictureBox.Image = Image.FromFile(path);
+                return;
             }
         }
 
-        private void LoadImage()
+        public void ShowScreen(AppScreen screen)
         {
-            string imagePath = Path.Combine(Application.StartupPath, "Images", "helping hands.jpeg");
-            if (File.Exists(imagePath))
+            // Defer when the handle exists so child forms can navigate
+            // without disposing themselves mid-event-handler.
+            if (IsHandleCreated)
             {
-                pictureBoxLogo.Image = Image.FromFile(imagePath);
-                pictureBoxLogo.SizeMode = PictureBoxSizeMode.Zoom;
+                BeginInvoke(new Action(() => NavigateCore(screen)));
             }
             else
             {
-                MessageBox.Show("Image not found: " + imagePath);
+                NavigateCore(screen);
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void NavigateCore(AppScreen screen)
         {
-            
-        }
+            contentPanel.SuspendLayout();
 
-        private void lblAppName_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btnReportIssues_Click(object sender, EventArgs e)
-        {
-            ShowReportIssue(sender, e);
-        }
-
-        private void btnLocalEvents_Click(object sender, EventArgs e)
-        {
-            var eventRepository = new EventRepository();
-            var localEventsForm = new LocalEvents(eventRepository)
+            if (activeForm != null)
             {
-                TopLevel = false,
-                FormBorderStyle = FormBorderStyle.None,
-                Dock = DockStyle.Fill
-            };
-            this.Controls.Add(localEventsForm);
-            localEventsForm.BringToFront();
-            localEventsForm.Show();
+                contentPanel.Controls.Remove(activeForm);
+                activeForm.Close();
+                activeForm.Dispose();
+                activeForm = null;
+            }
+
+            contentPanel.Controls.Clear();
+
+            switch (screen)
+            {
+                case AppScreen.Home:
+                    contentPanel.Controls.Add(homePanel);
+                    SetActiveNav(navHome);
+                    break;
+
+                case AppScreen.ReportIssue:
+                    HostForm(new ReportIssues(), navReport);
+                    break;
+
+                case AppScreen.ViewReports:
+                    HostForm(new ViewReports(_issueRepository), navReports);
+                    break;
+
+                case AppScreen.RequestStatus:
+                    HostForm(new ServiceRequestStatus(), navStatus);
+                    break;
+
+                case AppScreen.LocalEvents:
+                    HostForm(new LocalEvents(new EventRepository()), navEvents);
+                    break;
+            }
+
+            contentPanel.ResumeLayout(true);
         }
 
-        private void ShowLocalEvents(object sender, EventArgs e)
+        private void HostForm(Form childForm, Button navButton)
         {
-            var eventRepository = new EventRepository();
-            OpenChildForm(new LocalEvents(eventRepository));
+            activeForm = childForm;
+            childForm.TopLevel = false;
+            childForm.FormBorderStyle = FormBorderStyle.None;
+            childForm.Dock = DockStyle.Fill;
+            childForm.AutoScroll = true;
+            contentPanel.Controls.Add(childForm);
+            childForm.Show();
+            SetActiveNav(navButton);
         }
 
-        private void btnRequestStatus_Click(object sender, EventArgs e)
+        private void SetActiveNav(Button navButton)
         {
-            OpenChildForm(new Forms.ServiceRequestStatus());
+            foreach (Control control in sidebarPanel.Controls)
+            {
+                if (control is Button button && button.Tag is AppScreen)
+                {
+                    UiStyle.StyleNavButton(button, button == navButton);
+                }
+            }
+            activeNavButton = navButton;
         }
 
-        private void ShowServiceRequestStatus(object sender, EventArgs e)
-        {
-            OpenChildForm(new Forms.ServiceRequestStatus());
-        }
+        // Kept for designer compatibility / any leftover wiring
+        private void Form1_Load(object sender, EventArgs e) { }
+        private void lblAppName_Click(object sender, EventArgs e) { }
+        private void btnReportIssues_Click(object sender, EventArgs e) => ShowScreen(AppScreen.ReportIssue);
+        private void btnLocalEvents_Click(object sender, EventArgs e) => ShowScreen(AppScreen.LocalEvents);
+        private void btnRequestStatus_Click(object sender, EventArgs e) => ShowScreen(AppScreen.RequestStatus);
     }
 }

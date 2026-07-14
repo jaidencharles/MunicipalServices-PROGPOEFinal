@@ -122,7 +122,7 @@ namespace MunicipalServices.Forms
             // 
             // btnSearch
             // 
-            this.btnSearch.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(122)))), ((int)(((byte)(183)))));
+            this.btnSearch.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(90)))), ((int)(((byte)(94)))));
             this.btnSearch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSearch.ForeColor = System.Drawing.Color.White;
             this.btnSearch.Location = new System.Drawing.Point(610, 99);
@@ -146,6 +146,7 @@ namespace MunicipalServices.Forms
             this.Controls.Add(this.txtEventDetails);
             this.Controls.Add(this.btnBack);
             this.Controls.Add(this.btnSearch);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "LocalEvents";
             this.Text = "Local Events";
             this.ResumeLayout(false);

@@ -85,6 +85,7 @@
       <DependentUpon>ViewReports.cs</DependentUpon>
     </Compile>
     <Compile Include="Utils\ThemeColors.cs" />
+    <Compile Include="Utils\UiStyle.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

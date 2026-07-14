@@ -1,21 +1,11 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace MunicipalServices
 {
     partial class ReportIssues
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -27,10 +17,6 @@ namespace MunicipalServices
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             this.txtLocation = new System.Windows.Forms.TextBox();
@@ -49,44 +35,38 @@ namespace MunicipalServices
             // 
             // txtLocation
             // 
-            this.txtLocation.Location = new System.Drawing.Point(51, 133);
-            this.txtLocation.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtLocation.Location = new System.Drawing.Point(40, 148);
             this.txtLocation.Name = "txtLocation";
-            this.txtLocation.Size = new System.Drawing.Size(925, 26);
+            this.txtLocation.Size = new System.Drawing.Size(860, 26);
             this.txtLocation.TabIndex = 1;
             // 
             // cmbCategory
             // 
-            this.cmbCategory.Location = new System.Drawing.Point(51, 213);
-            this.cmbCategory.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.cmbCategory.Location = new System.Drawing.Point(40, 226);
             this.cmbCategory.Name = "cmbCategory";
-            this.cmbCategory.Size = new System.Drawing.Size(925, 28);
+            this.cmbCategory.Size = new System.Drawing.Size(860, 28);
             this.cmbCategory.TabIndex = 2;
             // 
             // txtDescription
             // 
-            this.txtDescription.Location = new System.Drawing.Point(51, 293);
-            this.txtDescription.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtDescription.Location = new System.Drawing.Point(40, 304);
             this.txtDescription.Name = "txtDescription";
-            this.txtDescription.Size = new System.Drawing.Size(925, 239);
+            this.txtDescription.Size = new System.Drawing.Size(860, 180);
             this.txtDescription.TabIndex = 3;
-            this.txtDescription.Text = "";
             // 
             // btnAttachFile
             // 
-            this.btnAttachFile.Location = new System.Drawing.Point(51, 567);
-            this.btnAttachFile.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnAttachFile.Location = new System.Drawing.Point(40, 530);
             this.btnAttachFile.Name = "btnAttachFile";
-            this.btnAttachFile.Size = new System.Drawing.Size(926, 53);
+            this.btnAttachFile.Size = new System.Drawing.Size(200, 42);
             this.btnAttachFile.TabIndex = 4;
-            this.btnAttachFile.Text = "Attach File";
+            this.btnAttachFile.Text = "Attach file";
             // 
             // lblAttachmentStatus
             // 
-            this.lblAttachmentStatus.Location = new System.Drawing.Point(51, 633);
-            this.lblAttachmentStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblAttachmentStatus.Location = new System.Drawing.Point(256, 538);
             this.lblAttachmentStatus.Name = "lblAttachmentStatus";
-            this.lblAttachmentStatus.Size = new System.Drawing.Size(926, 33);
+            this.lblAttachmentStatus.Size = new System.Drawing.Size(640, 28);
             this.lblAttachmentStatus.TabIndex = 5;
             this.lblAttachmentStatus.Text = "No file attached";
             // 
@@ -95,67 +75,62 @@ namespace MunicipalServices
             this.lblEngagement.Location = new System.Drawing.Point(0, 0);
             this.lblEngagement.Name = "lblEngagement";
             this.lblEngagement.Size = new System.Drawing.Size(100, 23);
-            this.lblEngagement.TabIndex = 0;
+            this.lblEngagement.Visible = false;
             // 
             // btnSubmit
             // 
-            this.btnSubmit.Location = new System.Drawing.Point(51, 773);
-            this.btnSubmit.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnSubmit.Location = new System.Drawing.Point(40, 668);
             this.btnSubmit.Name = "btnSubmit";
-            this.btnSubmit.Size = new System.Drawing.Size(257, 60);
+            this.btnSubmit.Size = new System.Drawing.Size(180, 44);
             this.btnSubmit.TabIndex = 8;
-            this.btnSubmit.Text = "Submit Report";
+            this.btnSubmit.Text = "Submit report";
             // 
             // btnBack
             // 
-            this.btnBack.Location = new System.Drawing.Point(720, 773);
-            this.btnBack.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnBack.Location = new System.Drawing.Point(700, 668);
             this.btnBack.Name = "btnBack";
-            this.btnBack.Size = new System.Drawing.Size(257, 60);
+            this.btnBack.Size = new System.Drawing.Size(120, 44);
             this.btnBack.TabIndex = 10;
             this.btnBack.Text = "Back";
+            this.btnBack.Visible = false;
             // 
             // btnViewReports
             // 
-            this.btnViewReports.Location = new System.Drawing.Point(334, 773);
-            this.btnViewReports.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnViewReports.Location = new System.Drawing.Point(236, 668);
             this.btnViewReports.Name = "btnViewReports";
-            this.btnViewReports.Size = new System.Drawing.Size(257, 60);
+            this.btnViewReports.Size = new System.Drawing.Size(160, 44);
             this.btnViewReports.TabIndex = 9;
-            this.btnViewReports.Text = "View Reports";
+            this.btnViewReports.Text = "View reports";
             // 
             // lblTitle
             // 
-            this.lblTitle.Location = new System.Drawing.Point(51, 40);
-            this.lblTitle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblTitle.Location = new System.Drawing.Point(40, 28);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(926, 60);
+            this.lblTitle.Size = new System.Drawing.Size(860, 40);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "Report an Issue";
+            this.lblTitle.Text = "Report an issue";
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(51, 687);
-            this.progressBar.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.progressBar.Location = new System.Drawing.Point(40, 600);
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(926, 11);
+            this.progressBar.Size = new System.Drawing.Size(860, 8);
             this.progressBar.TabIndex = 6;
             // 
             // lblEngagementMessage
             // 
-            this.lblEngagementMessage.Location = new System.Drawing.Point(51, 713);
-            this.lblEngagementMessage.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblEngagementMessage.Location = new System.Drawing.Point(40, 618);
             this.lblEngagementMessage.Name = "lblEngagementMessage";
-            this.lblEngagementMessage.Size = new System.Drawing.Size(926, 33);
+            this.lblEngagementMessage.Size = new System.Drawing.Size(860, 28);
             this.lblEngagementMessage.TabIndex = 7;
-            this.lblEngagementMessage.Text = "Let\'s get started!";
+            this.lblEngagementMessage.Text = "0 of 4 complete";
             // 
             // ReportIssues
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(1029, 867);
+            this.ClientSize = new System.Drawing.Size(960, 760);
             this.Controls.Add(this.lblTitle);
             this.Controls.Add(this.txtLocation);
             this.Controls.Add(this.cmbCategory);
@@ -167,18 +142,15 @@ namespace MunicipalServices
             this.Controls.Add(this.btnSubmit);
             this.Controls.Add(this.btnViewReports);
             this.Controls.Add(this.btnBack);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "ReportIssues";
-            this.Padding = new System.Windows.Forms.Padding(51, 53, 51, 53);
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Helping Hands Connect";
+            this.Text = "Report an issue";
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
+
         private System.Windows.Forms.TextBox txtLocation;
         private System.Windows.Forms.ComboBox cmbCategory;
         private System.Windows.Forms.RichTextBox txtDescription;

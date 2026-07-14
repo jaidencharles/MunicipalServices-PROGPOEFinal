@@ -1,25 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using MunicipalServicesLibrary.Models;
-using MunicipalServicesLibrary.Data;
 using MunicipalServices.Utils;
-using System.Drawing.Drawing2D;
+using MunicipalServicesLibrary.Data;
+using MunicipalServicesLibrary.Models;
 
 namespace MunicipalServices
 {
     public partial class ViewReports : Form
     {
         private readonly IssueRepository _issueRepository;
-        private string currentAttachmentPath;
+        private Label lblEmptyState;
+        private Panel detailPanel;
+        private Label lblStatus;
 
         public ViewReports(IssueRepository issueRepository)
         {
@@ -28,94 +23,143 @@ namespace MunicipalServices
             InitializeFormStyle();
             SetupInitialState();
             LoadReports();
-            this.FormClosing += ViewReports_FormClosing;
             btnOpenDocument.Click += btnOpenDocument_Click;
+            lstReports.SelectedIndexChanged += lstReports_SelectedIndexChanged;
         }
 
         private void InitializeFormStyle()
         {
-            // Form styling
-            this.BackColor = ThemeColors.Background;
-            
-            // Style the title
-            lblTitle.ForeColor = ThemeColors.Primary;
-            lblTitle.Font = new Font("Segoe UI Semibold", 24F);
-            
-            // Style the list box
-            lstReports.BackColor = ThemeColors.CardBackground;
-            lstReports.Font = new Font("Segoe UI", 11F);
-            lstReports.BorderStyle = BorderStyle.FixedSingle;
-            lstReports.ForeColor = ThemeColors.TextPrimary;
-            
-            // Style description box
-            txtDescription.BackColor = ThemeColors.CardBackground;
-            txtDescription.BorderStyle = BorderStyle.FixedSingle;
-            
-            // Style picture box
-            pictureBox.BackColor = ThemeColors.CardBackground;
+            UiStyle.StyleForm(this);
+            Padding = new Padding(40, 28, 40, 28);
+
+            UiStyle.StyleTitle(lblTitle);
+            lblTitle.Text = "View reports";
+            lblTitle.Location = new Point(40, 28);
+
+            var lblIntro = new Label
+            {
+                Text = "Select a submitted report to review details and attachments.",
+                Location = new Point(40, 72),
+                AutoSize = true
+            };
+            UiStyle.StyleSubtitle(lblIntro);
+            Controls.Add(lblIntro);
+
+            lstReports.Location = new Point(40, 120);
+            lstReports.Size = new Size(320, 520);
+            UiStyle.StyleListBox(lstReports);
+
+            detailPanel = new Panel
+            {
+                Location = new Point(384, 120),
+                Size = new Size(520, 520),
+                BackColor = ThemeColors.Surface,
+                Padding = new Padding(20)
+            };
+            UiStyle.StylePanel(detailPanel);
+
+            lblStatus = new Label
+            {
+                Location = new Point(20, 16),
+                AutoSize = true,
+                Font = new Font("Segoe UI Semibold", 9F),
+                ForeColor = Color.White,
+                BackColor = ThemeColors.Info,
+                Padding = new Padding(8, 4, 8, 4),
+                Visible = false
+            };
+
+            lblLocation.Location = new Point(20, 52);
+            lblLocation.Size = new Size(460, 28);
+            UiStyle.StyleFieldLabel(lblLocation);
+
+            lblCategory.Location = new Point(20, 84);
+            lblCategory.Size = new Size(460, 28);
+            UiStyle.StyleFieldLabel(lblCategory);
+
+            lblDescription.Location = new Point(20, 124);
+            lblDescription.Text = "Description";
+            UiStyle.StyleFieldLabel(lblDescription);
+
+            txtDescription.Location = new Point(20, 152);
+            txtDescription.Size = new Size(460, 140);
+            UiStyle.StyleTextBox(txtDescription);
+            txtDescription.Multiline = true;
+            txtDescription.ReadOnly = true;
+            txtDescription.ScrollBars = ScrollBars.Vertical;
+
+            lblAttachment.Location = new Point(20, 308);
+            UiStyle.StyleFieldLabel(lblAttachment);
+
+            pictureBox.Location = new Point(20, 340);
+            pictureBox.Size = new Size(460, 140);
+            pictureBox.BackColor = ThemeColors.PrimaryLight;
             pictureBox.BorderStyle = BorderStyle.FixedSingle;
-            
-            // Style labels
-            StyleLabel(lblLocation);
-            StyleLabel(lblCategory);
-            StyleLabel(lblAttachment);
-            
-            // Style button
-            StyleButton(btnOpenDocument);
-            
-            // Connect the event handler
-            lstReports.SelectedIndexChanged += lstReports_SelectedIndexChanged;
-        }
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
 
-        private void StyleButton(Button button)
-        {
-            button.FlatStyle = FlatStyle.Flat;
-            button.BackColor = ThemeColors.Primary;
-            button.ForeColor = Color.White;
-            button.Font = new Font("Segoe UI Semibold", 11F);
-            button.Cursor = Cursors.Hand;
-            
-            GraphicsPath path = new GraphicsPath();
-            path.AddRoundedRectangle(button.ClientRectangle, 5);
-            button.Region = new Region(path);
-        }
+            btnOpenDocument.Location = new Point(20, 340);
+            btnOpenDocument.Size = new Size(180, 40);
+            btnOpenDocument.Text = "Open document";
+            UiStyle.StylePrimaryButton(btnOpenDocument);
+            btnOpenDocument.Visible = false;
 
-        private void StyleLabel(Label label)
-        {
-            label.Font = new Font("Segoe UI", 11F);
-            label.ForeColor = ThemeColors.TextPrimary;
+            detailPanel.Controls.Add(lblStatus);
+            detailPanel.Controls.Add(lblLocation);
+            detailPanel.Controls.Add(lblCategory);
+            detailPanel.Controls.Add(lblDescription);
+            detailPanel.Controls.Add(txtDescription);
+            detailPanel.Controls.Add(lblAttachment);
+            detailPanel.Controls.Add(pictureBox);
+            detailPanel.Controls.Add(btnOpenDocument);
+
+            lblEmptyState = new Label
+            {
+                Text = "No reports yet.\nSubmit an issue to see it listed here.",
+                Font = UiStyle.BodyFont,
+                ForeColor = ThemeColors.TextSecondary,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Fill,
+                Visible = false
+            };
+            detailPanel.Controls.Add(lblEmptyState);
+
+            Controls.Add(detailPanel);
+            Controls.SetChildIndex(detailPanel, 0);
         }
 
         private void SetupInitialState()
         {
-            // Set initial placeholder texts
-            lblLocation.Text = "Location: No issue selected";
-            lblCategory.Text = "Category: No issue selected";
-            txtDescription.Text = "Select an issue from the list to view details...";
-            lblAttachment.Text = "Attachment: None";
-            
-            // Style the placeholder text
+            lblLocation.Text = "Location";
+            lblCategory.Text = "Category";
+            txtDescription.Text = "Select a report from the list.";
             txtDescription.ForeColor = ThemeColors.TextSecondary;
-            lblLocation.ForeColor = ThemeColors.TextSecondary;
-            lblCategory.ForeColor = ThemeColors.TextSecondary;
-            lblAttachment.ForeColor = ThemeColors.TextSecondary;
+            lblAttachment.Text = "Attachment";
+            lblStatus.Visible = false;
+            pictureBox.Visible = false;
+            btnOpenDocument.Visible = false;
+            lblEmptyState.Visible = false;
         }
 
         private void LoadReports()
         {
-            lstReports.Items.Clear(); // Clear existing items
+            lstReports.Items.Clear();
             var issues = _issueRepository.GetAllIssues();
-            
+
             if (issues.Count == 0)
             {
                 lstReports.Items.Add("No reports available");
                 lstReports.Enabled = false;
+                SetupInitialState();
+                lblEmptyState.Visible = true;
+                lblEmptyState.BringToFront();
             }
             else
             {
+                lstReports.Enabled = true;
+                lblEmptyState.Visible = false;
                 foreach (var issue in issues)
                 {
-                    lstReports.Items.Add($"{issue.Location} - {issue.Category}");
+                    lstReports.Items.Add($"{issue.Status}  ·  {issue.Location}  ·  {issue.Category}");
                 }
             }
         }
@@ -124,11 +168,10 @@ namespace MunicipalServices
         {
             int selectedIndex = lstReports.SelectedIndex;
             var issues = _issueRepository.GetAllIssues();
-            
+
             if (selectedIndex >= 0 && selectedIndex < issues.Count)
             {
-                Issue selectedIssue = issues[selectedIndex];
-                DisplayIssueDetails(selectedIssue);
+                DisplayIssueDetails(issues[selectedIndex]);
             }
             else
             {
@@ -140,21 +183,24 @@ namespace MunicipalServices
         {
             if (issue == null) return;
 
-            // Reset text colors to primary
+            lblEmptyState.Visible = false;
             lblLocation.ForeColor = ThemeColors.TextPrimary;
             lblCategory.ForeColor = ThemeColors.TextPrimary;
             txtDescription.ForeColor = ThemeColors.TextPrimary;
             lblAttachment.ForeColor = ThemeColors.TextPrimary;
 
-            // Update the display fields
-            lblLocation.Text = $"Location: {issue.Location}";
-            lblCategory.Text = $"Category: {issue.Category}";
+            lblStatus.Text = issue.Status.ToString();
+            lblStatus.BackColor = UiStyle.StatusColor(issue.Status.ToString());
+            lblStatus.Visible = true;
+
+            lblLocation.Text = "Location: " + issue.Location;
+            lblCategory.Text = "Category: " + issue.Category;
             txtDescription.Text = issue.Description;
 
             if (issue.AttachmentData != null && !string.IsNullOrEmpty(issue.AttachmentName))
             {
-                string fileExtension = Path.GetExtension(issue.AttachmentName).ToLower();
-                lblAttachment.Text = $"Attachment: {issue.AttachmentName}";
+                string fileExtension = Path.GetExtension(issue.AttachmentName).ToLowerInvariant();
+                lblAttachment.Text = "Attachment: " + issue.AttachmentName;
 
                 if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png")
                 {
@@ -175,7 +221,7 @@ namespace MunicipalServices
                     {
                         pictureBox.Visible = false;
                         lblAttachment.Text = "Error loading image";
-                        MessageBox.Show($"Error loading image: {ex.Message}", "Error", 
+                        MessageBox.Show("Error loading image: " + ex.Message, "Error",
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
@@ -189,7 +235,7 @@ namespace MunicipalServices
             {
                 pictureBox.Visible = false;
                 btnOpenDocument.Visible = false;
-                lblAttachment.Text = "No attachment";
+                lblAttachment.Text = "Attachment: none";
             }
         }
 
@@ -197,11 +243,10 @@ namespace MunicipalServices
         {
             int selectedIndex = lstReports.SelectedIndex;
             var issues = _issueRepository.GetAllIssues();
-            
+
             if (selectedIndex >= 0 && selectedIndex < issues.Count)
             {
-                Issue selectedIssue = issues[selectedIndex];
-                OpenAttachment(selectedIssue);
+                OpenAttachment(issues[selectedIndex]);
             }
         }
 
@@ -209,7 +254,7 @@ namespace MunicipalServices
         {
             if (issue.AttachmentData == null || string.IsNullOrEmpty(issue.AttachmentName))
             {
-                MessageBox.Show("No attachment available.", "Information", 
+                MessageBox.Show("No attachment available.", "Information",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -222,17 +267,8 @@ namespace MunicipalServices
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to open attachment: {ex.Message}", "Error", 
+                MessageBox.Show("Failed to open attachment: " + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void ViewReports_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (e.CloseReason == CloseReason.UserClosing)
-            {
-                e.Cancel = true;  // Prevent actual form closure
-                this.Hide();      // Just hide the form
             }
         }
     }

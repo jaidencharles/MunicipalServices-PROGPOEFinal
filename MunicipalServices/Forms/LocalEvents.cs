@@ -8,6 +8,7 @@ using System.Drawing.Drawing2D;
 using MunicipalServicesLibrary.Models;
 using MunicipalServicesLibrary.Data;
 using MunicipalServices.Utils;
+// Parent Form1 / AppScreen live in the MunicipalServices root namespace.
 
 namespace MunicipalServices.Forms
 {
@@ -48,17 +49,15 @@ namespace MunicipalServices.Forms
 
         private void InitializeFormStyle()
         {
-            this.BackColor = ThemeColors.Background;
+            UiStyle.StyleForm(this);
             this.Padding = new Padding(20);
 
-       // Style existing title label (already created by Designer)
+            // Style existing title label (already created by Designer)
             if (lblTitle != null)
             {
-                lblTitle.Text = "Local Events";
-                lblTitle.Font = new Font("Segoe UI Semibold", 28F);
-                lblTitle.ForeColor = ThemeColors.Primary;
+                lblTitle.Text = "Local events";
+                UiStyle.StyleTitle(lblTitle);
                 lblTitle.Location = new Point(48, 25);
-                lblTitle.Size = new Size(375, 70);
                 lblTitle.Visible = true;
                 lblTitle.BringToFront();
             }
@@ -186,16 +185,14 @@ namespace MunicipalServices.Forms
 
         private Button CreateStyledButton(string text, int width)
         {
-            return new Button
+            var button = new Button
             {
                 Text = text,
                 Width = width,
-                Height = 40,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = ThemeColors.Primary,
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI Semibold", 11F)
+                Height = 40
             };
+            UiStyle.StylePrimaryButton(button);
+            return button;
         }
 
         private void StyleDetailsSection(Panel detailsPanel)
@@ -238,7 +235,7 @@ namespace MunicipalServices.Forms
         private void SetupEventHandlers()
         {
             lstEvents.SelectedIndexChanged += lstEvents_SelectedIndexChanged;
-            btnBack.Click += btnBack_Click;
+            btnBack.Visible = false;
             this.FormClosing += LocalEvents_FormClosing;
             
             btnSearch.Click += (s, e) => 
@@ -335,15 +332,16 @@ namespace MunicipalServices.Forms
 
         private void btnBack_Click(object sender, EventArgs e)
         {
-            this.Close();
+            var shell = FindForm() as global::MunicipalServices.Form1;
+            if (shell != null)
+            {
+                shell.ShowScreen(global::MunicipalServices.AppScreen.Home);
+            }
         }
 
         private void LocalEvents_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (this.ParentForm != null)
-            {
-                this.ParentForm.Show();
-            }
+            // Hosted in Form1 shell — no special cleanup.
         }
 
         private void InitializeSearchControls()
@@ -449,6 +447,10 @@ namespace MunicipalServices.Forms
                 lblRecommendations,
                 pnlRecommendations
             });
+
+            UiStyle.StylePrimaryButton(btnSearch);
+            UiStyle.StyleListBox(lstEvents);
+            btnBack.Visible = false;
 
             // Ensure recommendations are on top
             lblRecommendations.BringToFront();
